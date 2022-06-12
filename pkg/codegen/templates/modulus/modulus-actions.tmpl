@@ -1,0 +1,29 @@
+{{range .}}{{$opid := .OperationId | ucFirst}}
+// ------------- Code generation for the "{{.OperationId}}" -------------
+type {{$opid}}Request struct {
+{{range .PathParams}}// Path parameter "{{.ParamName}}"
+    {{$varName := .GoVariableName}}{{$varName | ucFirst}} {{.TypeDef}}  `json:"{{$varName | lcFirst}}"`{{end}}{{range .Bodies}}
+    {{.Schema.RefType}}{{end}}
+}
+type {{$opid}}Action struct {
+    runner    *application.ActionRunner
+    processor {{$opid}}Processor
+}
+type {{$opid}}Processor interface {
+    Process(ctx context.Context, request *{{$opid}}Request) application.ActionResponse
+}
+
+func New{{$opid}}Action(runner *application.ActionRunner, processor {{$opid}}Processor) *{{$opid}}Action {
+    return &{{$opid}}Action{runner: runner, processor: processor}
+}
+
+func (a *{{$opid}}Action) Handle(w http.ResponseWriter, r *http.Request) {
+    a.runner.Run(
+        w, r, func(ctx context.Context, request any) application.ActionResponse {
+            return a.processor.Process(ctx, request.(*{{$opid}}Request))
+        }, &{{$opid}}Request{},
+    )
+}
+
+{{end}}
+

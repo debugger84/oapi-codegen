@@ -1,0 +1,32 @@
+//------ services initialization
+type ModuleActions struct {
+    routes *application.Routes
+}
+
+func NewModuleActions({{range .}}{{$opid := .OperationId | ucFirst}}
+    {{$opid | lcFirst}}Action *{{$opid}}Action,{{end}}
+) *ModuleActions {
+    routes := application.NewRoutes()
+    {{range .}}{{$opid := .OperationId | ucFirst}}
+    routes.{{.Method | lower | ucFirst}}(
+        "{{.Path | swaggerUriToGinUri }}",
+        {{$opid | lcFirst}}Action.Handle,
+    )
+    {{end}}
+
+    return &ModuleActions{
+        routes: routes,
+    }
+}
+
+func (a *ModuleActions) Routes() []application.RouteInfo {
+    return a.routes.GetRoutesInfo()
+}
+
+func ServiceProviders() []interface{} {
+    return []interface{}{
+        NewModuleActions,
+        {{range .}}{{$opid := .OperationId | ucFirst}}
+        New{{$opid}}Action,{{end}}
+    }
+}

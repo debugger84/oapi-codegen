@@ -153,8 +153,10 @@ func DescribeParameters(params openapi3.Parameters, path []string) ([]ParameterD
 
 		goType, err := paramToGoType(param, append(path, param.Name))
 		if err != nil {
-			return nil, fmt.Errorf("error generating type for param (%s): %s",
-				param.Name, err)
+			return nil, fmt.Errorf(
+				"error generating type for param (%s): %s",
+				param.Name, err,
+			)
 		}
 
 		pd := ParameterDefinition{
@@ -171,8 +173,10 @@ func DescribeParameters(params openapi3.Parameters, path []string) ([]ParameterD
 		if IsGoTypeReference(paramOrRef.Ref) {
 			goType, err := RefPathToGoType(paramOrRef.Ref)
 			if err != nil {
-				return nil, fmt.Errorf("error dereferencing (%s) for param (%s): %s",
-					paramOrRef.Ref, param.Name, err)
+				return nil, fmt.Errorf(
+					"error dereferencing (%s) for param (%s): %s",
+					paramOrRef.Ref, param.Name, err,
+				)
 			}
 			pd.Schema.GoType = goType
 		}
@@ -281,7 +285,12 @@ func (o *OperationDefinition) GetResponseTypeDefinitions() ([]ResponseTypeDefini
 				if contentType.Schema != nil {
 					responseSchema, err := GenerateGoSchema(contentType.Schema, []string{responseName})
 					if err != nil {
-						return nil, fmt.Errorf("Unable to determine Go type for %s.%s: %w", o.OperationId, contentTypeName, err)
+						return nil, fmt.Errorf(
+							"Unable to determine Go type for %s.%s: %w",
+							o.OperationId,
+							contentTypeName,
+							err,
+						)
 					}
 
 					var typeName string
@@ -389,8 +398,10 @@ func OperationDefinitions(swagger *openapi3.T) ([]OperationDefinition, error) {
 		// are shared by all methods.
 		globalParams, err := DescribeParameters(pathItem.Parameters, nil)
 		if err != nil {
-			return nil, fmt.Errorf("error describing global parameters for %s: %s",
-				requestPath, err)
+			return nil, fmt.Errorf(
+				"error describing global parameters for %s: %s",
+				requestPath, err,
+			)
 		}
 
 		// Each path can have a number of operations, POST, GET, OPTIONS, etc.
@@ -404,8 +415,10 @@ func OperationDefinitions(swagger *openapi3.T) ([]OperationDefinition, error) {
 			if op.OperationID == "" {
 				op.OperationID, err = generateDefaultOperationID(opName, requestPath)
 				if err != nil {
-					return nil, fmt.Errorf("error generating default OperationID for %s/%s: %s",
-						opName, requestPath, err)
+					return nil, fmt.Errorf(
+						"error generating default OperationID for %s/%s: %s",
+						opName, requestPath, err,
+					)
 				}
 				op.OperationID = op.OperationID
 			} else {
@@ -416,8 +429,10 @@ func OperationDefinitions(swagger *openapi3.T) ([]OperationDefinition, error) {
 			// we're iterating over.
 			localParams, err := DescribeParameters(op.Parameters, []string{op.OperationID + "Params"})
 			if err != nil {
-				return nil, fmt.Errorf("error describing global parameters for %s/%s: %s",
-					opName, requestPath, err)
+				return nil, fmt.Errorf(
+					"error describing global parameters for %s/%s: %s",
+					opName, requestPath, err,
+				)
 			}
 			// All the parameters required by a handler are the union of the
 			// global parameters and the local parameters.
@@ -501,7 +516,11 @@ func generateDefaultOperationID(opName string, requestPath string) (string, erro
 
 // This function turns the Swagger body definitions into a list of our body
 // definitions which will be used for code generation.
-func GenerateBodyDefinitions(operationID string, bodyOrRef *openapi3.RequestBodyRef) ([]RequestBodyDefinition, []TypeDefinition, error) {
+func GenerateBodyDefinitions(operationID string, bodyOrRef *openapi3.RequestBodyRef) (
+	[]RequestBodyDefinition,
+	[]TypeDefinition,
+	error,
+) {
 	if bodyOrRef == nil {
 		return nil, nil, nil
 	}
@@ -599,10 +618,12 @@ func GenerateParamsTypes(op OperationDefinition) []TypeDefinition {
 		if pSchema.HasAdditionalProperties {
 			propRefName := strings.Join([]string{typeName, param.GoName()}, "_")
 			pSchema.RefType = propRefName
-			typeDefs = append(typeDefs, TypeDefinition{
-				TypeName: propRefName,
-				Schema:   param.Schema,
-			})
+			typeDefs = append(
+				typeDefs, TypeDefinition{
+					TypeName: propRefName,
+					Schema:   param.Schema,
+				},
+			)
 		}
 		prop := Property{
 			Description:    param.Spec.Description,
@@ -668,25 +689,52 @@ func GenerateTypesForOperations(t *template.Template, ops []OperationDefinition)
 // GenerateChiServer This function generates all the go code for the ServerInterface as well as
 // all the wrapper functions around our handlers.
 func GenerateChiServer(t *template.Template, operations []OperationDefinition) (string, error) {
-	return GenerateTemplates([]string{"chi/chi-interface.tmpl", "chi/chi-middleware.tmpl", "chi/chi-handler.tmpl"}, t, operations)
+	return GenerateTemplates(
+		[]string{"chi/chi-interface.tmpl", "chi/chi-middleware.tmpl", "chi/chi-handler.tmpl"},
+		t,
+		operations,
+	)
 }
 
 // GenerateEchoServer This function generates all the go code for the ServerInterface as well as
 // all the wrapper functions around our handlers.
 func GenerateEchoServer(t *template.Template, operations []OperationDefinition) (string, error) {
-	return GenerateTemplates([]string{"echo/echo-interface.tmpl", "echo/echo-wrappers.tmpl", "echo/echo-register.tmpl"}, t, operations)
+	return GenerateTemplates(
+		[]string{"echo/echo-interface.tmpl", "echo/echo-wrappers.tmpl", "echo/echo-register.tmpl"},
+		t,
+		operations,
+	)
 }
 
 // GenerateGinServer This function generates all the go code for the ServerInterface as well as
 // all the wrapper functions around our handlers.
 func GenerateGinServer(t *template.Template, operations []OperationDefinition) (string, error) {
-	return GenerateTemplates([]string{"gin/gin-interface.tmpl", "gin/gin-wrappers.tmpl", "gin/gin-register.tmpl"}, t, operations)
+	return GenerateTemplates(
+		[]string{"gin/gin-interface.tmpl", "gin/gin-wrappers.tmpl", "gin/gin-register.tmpl"},
+		t,
+		operations,
+	)
+}
+
+// GenerateModulusActions This function generates all the go code for the Modulus framework
+func GenerateModulusActions(t *template.Template, operations []OperationDefinition) (string, error) {
+	return GenerateTemplates(
+		[]string{"modulus/modulus-actions.tmpl", "modulus/modulus-services-init.tmpl"},
+		t,
+		operations,
+	)
 }
 
 // GenerateGinServer This function generates all the go code for the ServerInterface as well as
 // all the wrapper functions around our handlers.
 func GenerateGorillaServer(t *template.Template, operations []OperationDefinition) (string, error) {
-	return GenerateTemplates([]string{"gorilla/gorilla-interface.tmpl", "gorilla/gorilla-middleware.tmpl", "gorilla/gorilla-register.tmpl"}, t, operations)
+	return GenerateTemplates(
+		[]string{
+			"gorilla/gorilla-interface.tmpl",
+			"gorilla/gorilla-middleware.tmpl",
+			"gorilla/gorilla-register.tmpl",
+		}, t, operations,
+	)
 }
 
 // Uses the template engine to generate the function which registers our wrappers

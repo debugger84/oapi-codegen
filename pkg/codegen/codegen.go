@@ -176,6 +176,14 @@ func Generate(spec *openapi3.T, opts Configuration) (string, error) {
 		}
 	}
 
+	var modulusActionsOut string
+	if opts.Generate.ModulusActions {
+		modulusActionsOut, err = GenerateModulusActions(t, ops)
+		if err != nil {
+			return "", fmt.Errorf("error generating Go handlers for Paths: %w", err)
+		}
+	}
+
 	var gorillaServerOut string
 	if opts.Generate.GorillaServer {
 		gorillaServerOut, err = GenerateGorillaServer(t, ops)
@@ -264,6 +272,13 @@ func Generate(spec *openapi3.T, opts Configuration) (string, error) {
 		}
 	}
 
+	if opts.Generate.ModulusActions {
+		_, err = w.WriteString(modulusActionsOut)
+		if err != nil {
+			return "", fmt.Errorf("error writing server path handlers: %w", err)
+		}
+	}
+
 	if opts.Generate.GorillaServer {
 		_, err = w.WriteString(gorillaServerOut)
 		if err != nil {
@@ -299,7 +314,12 @@ func Generate(spec *openapi3.T, opts Configuration) (string, error) {
 	return string(outBytes), nil
 }
 
-func GenerateTypeDefinitions(t *template.Template, swagger *openapi3.T, ops []OperationDefinition, excludeSchemas []string) (string, error) {
+func GenerateTypeDefinitions(
+	t *template.Template,
+	swagger *openapi3.T,
+	ops []OperationDefinition,
+	excludeSchemas []string,
+) (string, error) {
 	schemaTypes, err := GenerateTypesForSchemas(t, swagger.Components.Schemas, excludeSchemas)
 	if err != nil {
 		return "", fmt.Errorf("error generating Go types for component schemas: %w", err)
@@ -389,7 +409,11 @@ func GenerateConstants(t *template.Template, ops []OperationDefinition) (string,
 
 // GenerateTypesForSchemas generates type definitions for any custom types defined in the
 // components/schemas section of the Swagger spec.
-func GenerateTypesForSchemas(t *template.Template, schemas map[string]*openapi3.SchemaRef, excludeSchemas []string) ([]TypeDefinition, error) {
+func GenerateTypesForSchemas(
+	t *template.Template,
+	schemas map[string]*openapi3.SchemaRef,
+	excludeSchemas []string,
+) ([]TypeDefinition, error) {
 	excludeSchemasMap := make(map[string]bool)
 	for _, schema := range excludeSchemas {
 		excludeSchemasMap[schema] = true
@@ -412,11 +436,13 @@ func GenerateTypesForSchemas(t *template.Template, schemas map[string]*openapi3.
 			return nil, fmt.Errorf("error making name for components/schemas/%s: %w", schemaName, err)
 		}
 
-		types = append(types, TypeDefinition{
-			JsonName: schemaName,
-			TypeName: goTypeName,
-			Schema:   goSchema,
-		})
+		types = append(
+			types, TypeDefinition{
+				JsonName: schemaName,
+				TypeName: goTypeName,
+				Schema:   goSchema,
+			},
+		)
 
 		types = append(types, goSchema.GetAdditionalTypeDefs()...)
 	}
@@ -425,7 +451,10 @@ func GenerateTypesForSchemas(t *template.Template, schemas map[string]*openapi3.
 
 // GenerateTypesForParameters generates type definitions for any custom types defined in the
 // components/parameters section of the Swagger spec.
-func GenerateTypesForParameters(t *template.Template, params map[string]*openapi3.ParameterRef) ([]TypeDefinition, error) {
+func GenerateTypesForParameters(t *template.Template, params map[string]*openapi3.ParameterRef) (
+	[]TypeDefinition,
+	error,
+) {
 	var types []TypeDefinition
 	for _, paramName := range SortedParameterKeys(params) {
 		paramOrRef := params[paramName]
@@ -450,7 +479,12 @@ func GenerateTypesForParameters(t *template.Template, params map[string]*openapi
 			// Generate a reference type for referenced parameters
 			refType, err := RefPathToGoType(paramOrRef.Ref)
 			if err != nil {
-				return nil, fmt.Errorf("error generating Go type for (%s) in parameter %s: %w", paramOrRef.Ref, paramName, err)
+				return nil, fmt.Errorf(
+					"error generating Go type for (%s) in parameter %s: %w",
+					paramOrRef.Ref,
+					paramName,
+					err,
+				)
 			}
 			typeDef.TypeName = SchemaNameToTypeName(refType)
 		}
@@ -494,7 +528,12 @@ func GenerateTypesForResponses(t *template.Template, responses openapi3.Response
 				// Generate a reference type for referenced parameters
 				refType, err := RefPathToGoType(responseOrRef.Ref)
 				if err != nil {
-					return nil, fmt.Errorf("error generating Go type for (%s) in parameter %s: %w", responseOrRef.Ref, responseName, err)
+					return nil, fmt.Errorf(
+						"error generating Go type for (%s) in parameter %s: %w",
+						responseOrRef.Ref,
+						responseName,
+						err,
+					)
 				}
 				typeDef.TypeName = SchemaNameToTypeName(refType)
 			}
@@ -506,7 +545,10 @@ func GenerateTypesForResponses(t *template.Template, responses openapi3.Response
 
 // GenerateTypesForRequestBodies generates type definitions for any custom types defined in the
 // components/requestBodies section of the Swagger spec.
-func GenerateTypesForRequestBodies(t *template.Template, bodies map[string]*openapi3.RequestBodyRef) ([]TypeDefinition, error) {
+func GenerateTypesForRequestBodies(t *template.Template, bodies map[string]*openapi3.RequestBodyRef) (
+	[]TypeDefinition,
+	error,
+) {
 	var types []TypeDefinition
 
 	for _, requestBodyName := range SortedRequestBodyKeys(bodies) {
@@ -537,7 +579,12 @@ func GenerateTypesForRequestBodies(t *template.Template, bodies map[string]*open
 				// Generate a reference type for referenced bodies
 				refType, err := RefPathToGoType(requestBodyRef.Ref)
 				if err != nil {
-					return nil, fmt.Errorf("error generating Go type for (%s) in body %s: %w", requestBodyRef.Ref, requestBodyName, err)
+					return nil, fmt.Errorf(
+						"error generating Go type for (%s) in body %s: %w",
+						requestBodyRef.Ref,
+						requestBodyName,
+						err,
+					)
 				}
 				typeDef.TypeName = SchemaNameToTypeName(refType)
 			}
@@ -591,11 +638,13 @@ func GenerateEnums(t *template.Template, types []TypeDefinition) (string, error)
 			if tp.Schema.GoType == "string" {
 				wrapper = `"`
 			}
-			enums = append(enums, EnumDefinition{
-				Schema:       tp.Schema,
-				TypeName:     tp.TypeName,
-				ValueWrapper: wrapper,
-			})
+			enums = append(
+				enums, EnumDefinition{
+					Schema:       tp.Schema,
+					TypeName:     tp.TypeName,
+					ValueWrapper: wrapper,
+				},
+			)
 		}
 	}
 
@@ -741,25 +790,27 @@ func SanitizeCode(goCode string) string {
 // LoadTemplates loads all of our template files into a text/template. The
 // path of template is relative to the templates directory.
 func LoadTemplates(src embed.FS, t *template.Template) error {
-	return fs.WalkDir(src, "templates", func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return fmt.Errorf("error walking directory %s: %w", path, err)
-		}
-		if d.IsDir() {
+	return fs.WalkDir(
+		src, "templates", func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return fmt.Errorf("error walking directory %s: %w", path, err)
+			}
+			if d.IsDir() {
+				return nil
+			}
+
+			buf, err := src.ReadFile(path)
+			if err != nil {
+				return fmt.Errorf("error reading file '%s': %w", path, err)
+			}
+
+			templateName := strings.TrimPrefix(path, "templates/")
+			tmpl := t.New(templateName)
+			_, err = tmpl.Parse(string(buf))
+			if err != nil {
+				return fmt.Errorf("parsing template '%s': %w", path, err)
+			}
 			return nil
-		}
-
-		buf, err := src.ReadFile(path)
-		if err != nil {
-			return fmt.Errorf("error reading file '%s': %w", path, err)
-		}
-
-		templateName := strings.TrimPrefix(path, "templates/")
-		tmpl := t.New(templateName)
-		_, err = tmpl.Parse(string(buf))
-		if err != nil {
-			return fmt.Errorf("parsing template '%s': %w", path, err)
-		}
-		return nil
-	})
+		},
+	)
 }
