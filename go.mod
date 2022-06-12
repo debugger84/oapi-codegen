@@ -19,4 +19,4 @@ require (
 
 go 1.16
 
-replace github.com/deepmap/oapi-codegen v1.11.1-0.20220609223533-7da811e1cf30 => github.com/debugger84/oapi-codegen v1.11.1
+replace github.com/deepmap/oapi-codegen => ./
