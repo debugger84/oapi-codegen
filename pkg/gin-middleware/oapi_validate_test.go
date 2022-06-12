@@ -29,7 +29,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/deepmap/oapi-codegen/pkg/testutil"
+	"github.com/debugger84/oapi-codegen/pkg/testutil"
 )
 
 //go:embed test_spec.yaml
@@ -41,7 +41,10 @@ func doGet(t *testing.T, handler http.Handler, rawURL string) *httptest.Response
 		t.Fatalf("Invalid url: %s", rawURL)
 	}
 
-	response := testutil.NewRequest().Get(u.RequestURI()).WithHost(u.Host).WithAcceptJson().GoWithHTTPHandler(t, handler)
+	response := testutil.NewRequest().Get(u.RequestURI()).WithHost(u.Host).WithAcceptJson().GoWithHTTPHandler(
+		t,
+		handler,
+	)
 	return response.Recorder
 }
 
@@ -51,7 +54,10 @@ func doPost(t *testing.T, handler http.Handler, rawURL string, jsonBody interfac
 		t.Fatalf("Invalid url: %s", rawURL)
 	}
 
-	response := testutil.NewRequest().Post(u.RequestURI()).WithHost(u.Host).WithJsonBody(jsonBody).GoWithHTTPHandler(t, handler)
+	response := testutil.NewRequest().Post(u.RequestURI()).WithHost(u.Host).WithJsonBody(jsonBody).GoWithHTTPHandler(
+		t,
+		handler,
+	)
 	return response.Recorder
 }
 
@@ -97,9 +103,11 @@ func TestOapiRequestValidator(t *testing.T) {
 
 	// Install a request handler for /resource. We want to make sure it doesn't
 	// get called.
-	g.GET("/resource", func(c *gin.Context) {
-		called = true
-	})
+	g.GET(
+		"/resource", func(c *gin.Context) {
+			called = true
+		},
+	)
 	// Let's send the request to the wrong server, this should fail validation
 	{
 		rec := doGet(t, g, "http://not.deepmap.ai/resource")
@@ -132,10 +140,12 @@ func TestOapiRequestValidator(t *testing.T) {
 	}
 
 	// Add a handler for the POST message
-	g.POST("/resource", func(c *gin.Context) {
-		called = true
-		c.AbortWithStatus(http.StatusNoContent)
-	})
+	g.POST(
+		"/resource", func(c *gin.Context) {
+			called = true
+			c.AbortWithStatus(http.StatusNoContent)
+		},
+	)
 
 	called = false
 	// Send a good request body
@@ -164,10 +174,12 @@ func TestOapiRequestValidator(t *testing.T) {
 		called = false
 	}
 
-	g.GET("/protected_resource", func(c *gin.Context) {
-		called = true
-		c.AbortWithStatus(http.StatusNoContent)
-	})
+	g.GET(
+		"/protected_resource", func(c *gin.Context) {
+			called = true
+			c.AbortWithStatus(http.StatusNoContent)
+		},
+	)
 
 	// Call a protected function to which we have access
 	{
@@ -177,10 +189,12 @@ func TestOapiRequestValidator(t *testing.T) {
 		called = false
 	}
 
-	g.GET("/protected_resource2", func(c *gin.Context) {
-		called = true
-		c.AbortWithStatus(http.StatusNoContent)
-	})
+	g.GET(
+		"/protected_resource2", func(c *gin.Context) {
+			called = true
+			c.AbortWithStatus(http.StatusNoContent)
+		},
+	)
 	// Call a protected function to which we don't have access
 	{
 		rec := doGet(t, g, "http://deepmap.ai/protected_resource2")
@@ -189,15 +203,21 @@ func TestOapiRequestValidator(t *testing.T) {
 		called = false
 	}
 
-	g.GET("/protected_resource_401", func(c *gin.Context) {
-		called = true
-		c.AbortWithStatus(http.StatusNoContent)
-	})
+	g.GET(
+		"/protected_resource_401", func(c *gin.Context) {
+			called = true
+			c.AbortWithStatus(http.StatusNoContent)
+		},
+	)
 	// Call a protected function without credentials
 	{
 		rec := doGet(t, g, "http://deepmap.ai/protected_resource_401")
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
-		assert.Equal(t, "test: error in openapi3filter.SecurityRequirementsError: Security requirements failed", rec.Body.String())
+		assert.Equal(
+			t,
+			"test: error in openapi3filter.SecurityRequirementsError: Security requirements failed",
+			rec.Body.String(),
+		)
 		assert.False(t, called, "Handler should not have been called")
 		called = false
 	}

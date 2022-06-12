@@ -9,8 +9,8 @@ import (
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/labstack/echo/v4"
 
-	"github.com/deepmap/oapi-codegen/examples/authenticated-api/echo/api"
-	"github.com/deepmap/oapi-codegen/pkg/middleware"
+	"github.com/debugger84/oapi-codegen/examples/authenticated-api/echo/api"
+	"github.com/debugger84/oapi-codegen/pkg/middleware"
 )
 
 type server struct {
@@ -32,12 +32,14 @@ func CreateMiddleware(v JWSValidator) ([]echo.MiddlewareFunc, error) {
 		return nil, fmt.Errorf("loading spec: %w", err)
 	}
 
-	validator := middleware.OapiRequestValidatorWithOptions(spec,
+	validator := middleware.OapiRequestValidatorWithOptions(
+		spec,
 		&middleware.Options{
 			Options: openapi3filter.Options{
 				AuthenticationFunc: NewAuthenticator(v),
 			},
-		})
+		},
+	)
 
 	return []echo.MiddlewareFunc{validator}, nil
 }
@@ -60,10 +62,12 @@ func (s *server) ListThings(ctx echo.Context) error {
 
 	for _, key := range thingKeys {
 		thing := s.things[key]
-		things = append(things, api.ThingWithID{
-			Id:   key,
-			Name: thing.Name,
-		})
+		things = append(
+			things, api.ThingWithID{
+				Id:   key,
+				Name: thing.Name,
+			},
+		)
 	}
 
 	s.RUnlock()

@@ -24,8 +24,8 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/deepmap/oapi-codegen/pkg/codegen"
-	"github.com/deepmap/oapi-codegen/pkg/util"
+	"github.com/debugger84/oapi-codegen/pkg/codegen"
+	"github.com/debugger84/oapi-codegen/pkg/util"
 )
 
 func errExit(format string, args ...interface{}) {
@@ -78,20 +78,49 @@ type oldConfiguration struct {
 func main() {
 	flag.StringVar(&flagOutputFile, "o", "", "Where to output generated code, stdout is default")
 	flag.BoolVar(&flagOldConfigStyle, "old-config-style", false, "whether to use the older style config file format")
-	flag.BoolVar(&flagOutputConfig, "output-config", false, "when true, outputs a configuration file for oapi-codegen using current settings")
+	flag.BoolVar(
+		&flagOutputConfig,
+		"output-config",
+		false,
+		"when true, outputs a configuration file for oapi-codegen using current settings",
+	)
 	flag.StringVar(&flagConfigFile, "config", "", "a YAML config file that controls oapi-codegen behavior")
 	flag.BoolVar(&flagPrintVersion, "version", false, "when specified, print version and exit")
 	flag.StringVar(&flagPackageName, "package", "", "The package name for generated code")
 
 	// All flags below are deprecated, and will be removed in a future release. Please do not
 	// update their behavior.
-	flag.StringVar(&flagGenerate, "generate", "types,client,server,spec",
-		`Comma-separated list of code to generate; valid options: "types", "client", "chi-server", "server", "gin", "gorilla", "spec", "skip-fmt", "skip-prune"`)
-	flag.StringVar(&flagIncludeTags, "include-tags", "", "Only include operations with the given tags. Comma-separated list of tags.")
-	flag.StringVar(&flagExcludeTags, "exclude-tags", "", "Exclude operations that are tagged with the given tags. Comma-separated list of tags.")
+	flag.StringVar(
+		&flagGenerate,
+		"generate",
+		"types,client,server,spec",
+		`Comma-separated list of code to generate; valid options: "types", "client", "chi-server", "server", "gin", "gorilla", "spec", "skip-fmt", "skip-prune"`,
+	)
+	flag.StringVar(
+		&flagIncludeTags,
+		"include-tags",
+		"",
+		"Only include operations with the given tags. Comma-separated list of tags.",
+	)
+	flag.StringVar(
+		&flagExcludeTags,
+		"exclude-tags",
+		"",
+		"Exclude operations that are tagged with the given tags. Comma-separated list of tags.",
+	)
 	flag.StringVar(&flagTemplatesDir, "templates", "", "Path to directory containing user templates")
-	flag.StringVar(&flagImportMapping, "import-mapping", "", "A dict from the external reference to golang package path")
-	flag.StringVar(&flagExcludeSchemas, "exclude-schemas", "", "A comma separated list of schemas which must be excluded from generation")
+	flag.StringVar(
+		&flagImportMapping,
+		"import-mapping",
+		"",
+		"A dict from the external reference to golang package path",
+	)
+	flag.StringVar(
+		&flagExcludeSchemas,
+		"exclude-schemas",
+		"",
+		"A comma separated list of schemas which must be excluded from generation",
+	)
 	flag.StringVar(&flagResponseTypeSuffix, "response-type-suffix", "", "the suffix used for responses types")
 	flag.BoolVar(&flagAliasTypes, "alias-types", false, "Alias type declarations of possible")
 
@@ -257,9 +286,11 @@ func updateConfigFromFlags(cfg configuration) (configuration, error) {
 	}
 
 	if len(unsupportedFlags) > 0 {
-		return configuration{}, fmt.Errorf("flags %s aren't supported in "+
-			"new config style, please use  -old-config-style or update your configuration ",
-			strings.Join(unsupportedFlags, ", "))
+		return configuration{}, fmt.Errorf(
+			"flags %s aren't supported in "+
+				"new config style, please use  -old-config-style or update your configuration ",
+			strings.Join(unsupportedFlags, ", "),
+		)
 	}
 
 	return cfg, nil

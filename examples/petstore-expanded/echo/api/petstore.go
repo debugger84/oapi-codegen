@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:generate go run github.com/deepmap/oapi-codegen/cmd/oapi-codegen --config=models.cfg.yaml ../../petstore-expanded.yaml
-//go:generate go run github.com/deepmap/oapi-codegen/cmd/oapi-codegen --config=server.cfg.yaml ../../petstore-expanded.yaml
+//go:generate go run github.com/debugger84/oapi-codegen/cmd/oapi-codegen --config=models.cfg.yaml ../../petstore-expanded.yaml
+//go:generate go run github.com/debugger84/oapi-codegen/cmd/oapi-codegen --config=server.cfg.yaml ../../petstore-expanded.yaml
 
 package api
 
@@ -24,7 +24,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/deepmap/oapi-codegen/examples/petstore-expanded/echo/api/models"
+	"github.com/debugger84/oapi-codegen/examples/petstore-expanded/echo/api/models"
 )
 
 type PetStore struct {
@@ -127,8 +127,10 @@ func (p *PetStore) FindPetByID(ctx echo.Context, petId int64) error {
 
 	pet, found := p.Pets[petId]
 	if !found {
-		return sendPetstoreError(ctx, http.StatusNotFound,
-			fmt.Sprintf("Could not find pet with ID %d", petId))
+		return sendPetstoreError(
+			ctx, http.StatusNotFound,
+			fmt.Sprintf("Could not find pet with ID %d", petId),
+		)
 	}
 	return ctx.JSON(http.StatusOK, pet)
 }
@@ -139,8 +141,10 @@ func (p *PetStore) DeletePet(ctx echo.Context, id int64) error {
 
 	_, found := p.Pets[id]
 	if !found {
-		return sendPetstoreError(ctx, http.StatusNotFound,
-			fmt.Sprintf("Could not find pet with ID %d", id))
+		return sendPetstoreError(
+			ctx, http.StatusNotFound,
+			fmt.Sprintf("Could not find pet with ID %d", id),
+		)
 	}
 	delete(p.Pets, id)
 	return ctx.NoContent(http.StatusNoContent)

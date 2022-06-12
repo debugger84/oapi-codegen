@@ -30,7 +30,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/deepmap/oapi-codegen/pkg/testutil"
+	"github.com/debugger84/oapi-codegen/pkg/testutil"
 )
 
 //go:embed test_spec.yaml
@@ -52,7 +52,10 @@ func doPost(t *testing.T, e *echo.Echo, rawURL string, jsonBody interface{}) *ht
 		t.Fatalf("Invalid url: %s", rawURL)
 	}
 
-	response := testutil.NewRequest().Post(u.RequestURI()).WithHost(u.Host).WithJsonBody(jsonBody).GoWithHTTPHandler(t, e)
+	response := testutil.NewRequest().Post(u.RequestURI()).WithHost(u.Host).WithJsonBody(jsonBody).GoWithHTTPHandler(
+		t,
+		e,
+	)
 	return response.Recorder
 }
 
@@ -98,10 +101,12 @@ func TestOapiRequestValidator(t *testing.T) {
 
 	// Install a request handler for /resource. We want to make sure it doesn't
 	// get called.
-	e.GET("/resource", func(c echo.Context) error {
-		called = true
-		return nil
-	})
+	e.GET(
+		"/resource", func(c echo.Context) error {
+			called = true
+			return nil
+		},
+	)
 	// Let's send the request to the wrong server, this should fail validation
 	{
 		rec := doGet(t, e, "http://not.deepmap.ai/resource")
@@ -134,10 +139,12 @@ func TestOapiRequestValidator(t *testing.T) {
 	}
 
 	// Add a handler for the POST message
-	e.POST("/resource", func(c echo.Context) error {
-		called = true
-		return c.NoContent(http.StatusNoContent)
-	})
+	e.POST(
+		"/resource", func(c echo.Context) error {
+			called = true
+			return c.NoContent(http.StatusNoContent)
+		},
+	)
 
 	called = false
 	// Send a good request body
@@ -166,11 +173,13 @@ func TestOapiRequestValidator(t *testing.T) {
 		called = false
 	}
 
-	e.GET("/protected_resource", func(c echo.Context) error {
-		called = true
-		return c.NoContent(http.StatusNoContent)
+	e.GET(
+		"/protected_resource", func(c echo.Context) error {
+			called = true
+			return c.NoContent(http.StatusNoContent)
 
-	})
+		},
+	)
 
 	// Call a protected function to which we have access
 	{
@@ -180,10 +189,12 @@ func TestOapiRequestValidator(t *testing.T) {
 		called = false
 	}
 
-	e.GET("/protected_resource2", func(c echo.Context) error {
-		called = true
-		return c.NoContent(http.StatusNoContent)
-	})
+	e.GET(
+		"/protected_resource2", func(c echo.Context) error {
+			called = true
+			return c.NoContent(http.StatusNoContent)
+		},
+	)
 	// Call a protected function to which we dont have access
 	{
 		rec := doGet(t, e, "http://deepmap.ai/protected_resource2")
@@ -192,10 +203,12 @@ func TestOapiRequestValidator(t *testing.T) {
 		called = false
 	}
 
-	e.GET("/protected_resource_401", func(c echo.Context) error {
-		called = true
-		return c.NoContent(http.StatusNoContent)
-	})
+	e.GET(
+		"/protected_resource_401", func(c echo.Context) error {
+			called = true
+			return c.NoContent(http.StatusNoContent)
+		},
+	)
 	// Call a protected function without credentials
 	{
 		rec := doGet(t, e, "http://deepmap.ai/protected_resource_401")

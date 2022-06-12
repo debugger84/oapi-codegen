@@ -11,11 +11,10 @@ import (
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/openapi3filter"
-	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/deepmap/oapi-codegen/pkg/testutil"
+	"github.com/debugger84/oapi-codegen/pkg/testutil"
 )
 
 //go:embed test_spec.yaml
@@ -37,7 +36,10 @@ func doPost(t *testing.T, mux *chi.Mux, rawURL string, jsonBody interface{}) *ht
 		t.Fatalf("Invalid url: %s", rawURL)
 	}
 
-	response := testutil.NewRequest().Post(u.RequestURI()).WithHost(u.Host).WithJsonBody(jsonBody).GoWithHTTPHandler(t, mux)
+	response := testutil.NewRequest().Post(u.RequestURI()).WithHost(u.Host).WithJsonBody(jsonBody).GoWithHTTPHandler(
+		t,
+		mux,
+	)
 	return response.Recorder
 }
 
@@ -87,10 +89,12 @@ func TestOapiRequestValidatorWithOptions(t *testing.T) {
 
 	called := false
 
-	r.Get("/protected_resource", func(w http.ResponseWriter, r *http.Request) {
-		called = true
-		w.WriteHeader(http.StatusNoContent)
-	})
+	r.Get(
+		"/protected_resource", func(w http.ResponseWriter, r *http.Request) {
+			called = true
+			w.WriteHeader(http.StatusNoContent)
+		},
+	)
 
 	// Call a protected function to which we have access
 	{
@@ -100,10 +104,12 @@ func TestOapiRequestValidatorWithOptions(t *testing.T) {
 		called = false
 	}
 
-	r.Get("/protected_resource2", func(w http.ResponseWriter, r *http.Request) {
-		called = true
-		w.WriteHeader(http.StatusNoContent)
-	})
+	r.Get(
+		"/protected_resource2", func(w http.ResponseWriter, r *http.Request) {
+			called = true
+			w.WriteHeader(http.StatusNoContent)
+		},
+	)
 	// Call a protected function to which we dont have access
 	{
 		rec := doGet(t, r, "http://deepmap.ai/protected_resource2")
@@ -112,10 +118,12 @@ func TestOapiRequestValidatorWithOptions(t *testing.T) {
 		called = false
 	}
 
-	r.Get("/protected_resource_401", func(w http.ResponseWriter, r *http.Request) {
-		called = true
-		w.WriteHeader(http.StatusNoContent)
-	})
+	r.Get(
+		"/protected_resource_401", func(w http.ResponseWriter, r *http.Request) {
+			called = true
+			w.WriteHeader(http.StatusNoContent)
+		},
+	)
 	// Call a protected function without credentials
 	{
 		rec := doGet(t, r, "http://deepmap.ai/protected_resource_401")
@@ -133,9 +141,11 @@ func testRequestValidatorBasicFunctions(t *testing.T, r *chi.Mux) {
 
 	// Install a request handler for /resource. We want to make sure it doesn't
 	// get called.
-	r.Get("/resource", func(w http.ResponseWriter, r *http.Request) {
-		called = true
-	})
+	r.Get(
+		"/resource", func(w http.ResponseWriter, r *http.Request) {
+			called = true
+		},
+	)
 
 	// Let's send the request to the wrong server, this should fail validation
 	{
@@ -169,10 +179,12 @@ func testRequestValidatorBasicFunctions(t *testing.T, r *chi.Mux) {
 	}
 
 	// Add a handler for the POST message
-	r.Post("/resource", func(w http.ResponseWriter, r *http.Request) {
-		called = true
-		w.WriteHeader(http.StatusNoContent)
-	})
+	r.Post(
+		"/resource", func(w http.ResponseWriter, r *http.Request) {
+			called = true
+			w.WriteHeader(http.StatusNoContent)
+		},
+	)
 
 	called = false
 	// Send a good request body

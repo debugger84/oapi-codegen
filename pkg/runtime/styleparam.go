@@ -23,7 +23,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/deepmap/oapi-codegen/pkg/types"
+	"github.com/debugger84/oapi-codegen/pkg/types"
 )
 
 // Parameter escaping works differently based on where a header is found
@@ -48,7 +48,13 @@ func StyleParam(style string, explode bool, paramName string, value interface{})
 // Given an input value, such as a primitive type, array or object, turn it
 // into a parameter based on style/explode definition, performing whatever
 // escaping is necessary based on parameter location
-func StyleParamWithLocation(style string, explode bool, paramName string, paramLocation ParamLocation, value interface{}) (string, error) {
+func StyleParamWithLocation(
+	style string,
+	explode bool,
+	paramName string,
+	paramLocation ParamLocation,
+	value interface{},
+) (string, error) {
 	t := reflect.TypeOf(value)
 	v := reflect.ValueOf(value)
 
@@ -79,7 +85,13 @@ func StyleParamWithLocation(style string, explode bool, paramName string, paramL
 	}
 }
 
-func styleSlice(style string, explode bool, paramName string, paramLocation ParamLocation, values []interface{}) (string, error) {
+func styleSlice(
+	style string,
+	explode bool,
+	paramName string,
+	paramLocation ParamLocation,
+	values []interface{},
+) (string, error) {
 	if style == "deepObject" {
 		if !explode {
 			return "", errors.New("deepObjects must be exploded")
@@ -179,7 +191,10 @@ func marshalDateTimeValue(value interface{}) (string, bool) {
 	return "", false
 }
 
-func styleStruct(style string, explode bool, paramName string, paramLocation ParamLocation, value interface{}) (string, error) {
+func styleStruct(style string, explode bool, paramName string, paramLocation ParamLocation, value interface{}) (
+	string,
+	error,
+) {
 
 	if timeVal, ok := marshalDateTimeValue(value); ok {
 		styledVal, err := stylePrimitive(style, explode, paramName, paramLocation, timeVal)
@@ -231,7 +246,10 @@ func styleStruct(style string, explode bool, paramName string, paramLocation Par
 	return processFieldDict(style, explode, paramName, paramLocation, fieldDict)
 }
 
-func styleMap(style string, explode bool, paramName string, paramLocation ParamLocation, value interface{}) (string, error) {
+func styleMap(style string, explode bool, paramName string, paramLocation ParamLocation, value interface{}) (
+	string,
+	error,
+) {
 	if style == "deepObject" {
 		if !explode {
 			return "", errors.New("deepObjects must be exploded")
@@ -255,7 +273,13 @@ func styleMap(style string, explode bool, paramName string, paramLocation ParamL
 	return processFieldDict(style, explode, paramName, paramLocation, fieldDict)
 }
 
-func processFieldDict(style string, explode bool, paramName string, paramLocation ParamLocation, fieldDict map[string]string) (string, error) {
+func processFieldDict(
+	style string,
+	explode bool,
+	paramName string,
+	paramLocation ParamLocation,
+	fieldDict map[string]string,
+) (string, error) {
 	var parts []string
 
 	// This works for everything except deepObject. We'll handle that one
@@ -322,7 +346,13 @@ func processFieldDict(style string, explode bool, paramName string, paramLocatio
 	return prefix + strings.Join(parts, separator), nil
 }
 
-func stylePrimitive(style string, explode bool, paramName string, paramLocation ParamLocation, value interface{}) (string, error) {
+func stylePrimitive(
+	style string,
+	explode bool,
+	paramName string,
+	paramLocation ParamLocation,
+	value interface{},
+) (string, error) {
 	strVal, err := primitiveToString(value)
 	if err != nil {
 		return "", err

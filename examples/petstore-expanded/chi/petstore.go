@@ -11,10 +11,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/go-chi/chi/v5"
-
-	api "github.com/deepmap/oapi-codegen/examples/petstore-expanded/chi/api"
-	middleware "github.com/deepmap/oapi-codegen/pkg/chi-middleware"
+	api "github.com/debugger84/oapi-codegen/examples/petstore-expanded/chi/api"
+	middleware "github.com/debugger84/oapi-codegen/pkg/chi-middleware"
 )
 
 func main() {

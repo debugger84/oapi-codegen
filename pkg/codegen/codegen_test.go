@@ -12,8 +12,8 @@ import (
 	"github.com/golangci/lint-1"
 	"github.com/stretchr/testify/assert"
 
-	examplePetstoreClient "github.com/deepmap/oapi-codegen/examples/petstore-expanded"
-	examplePetstore "github.com/deepmap/oapi-codegen/examples/petstore-expanded/echo/api"
+	examplePetstoreClient "github.com/debugger84/oapi-codegen/examples/petstore-expanded"
+	examplePetstore "github.com/debugger84/oapi-codegen/examples/petstore-expanded/echo/api"
 )
 
 func TestExamplePetStoreCodeGeneration(t *testing.T) {
@@ -47,15 +47,21 @@ func TestExamplePetStoreCodeGeneration(t *testing.T) {
 	assert.Contains(t, code, "package api")
 
 	// Check that the client method signatures return response structs:
-	assert.Contains(t, code, "func (c *Client) FindPetByID(ctx context.Context, id int64, reqEditors ...RequestEditorFn) (*http.Response, error) {")
+	assert.Contains(
+		t,
+		code,
+		"func (c *Client) FindPetByID(ctx context.Context, id int64, reqEditors ...RequestEditorFn) (*http.Response, error) {",
+	)
 
 	// Check that the property comments were generated
 	assert.Contains(t, code, "// Unique id of the pet")
 
 	// Check that the summary comment contains newlines
-	assert.Contains(t, code, `// Deletes a pet by ID
+	assert.Contains(
+		t, code, `// Deletes a pet by ID
 	// (DELETE /pets/{id})
-`)
+`,
+	)
 
 	// Make sure the generated code is valid:
 	linter := new(lint.Linter)
@@ -155,7 +161,8 @@ func TestExampleOpenAPICodeGeneration(t *testing.T) {
 
 	// Check that response structs contains fallbacks to interface for invalid types:
 	// Here an invalid array with no items.
-	assert.Contains(t, code, `
+	assert.Contains(
+		t, code, `
 type GetTestByNameResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -164,7 +171,8 @@ type GetTestByNameResponse struct {
 	JSON422      *[]interface{}
 	XML422       *[]interface{}
 	JSONDefault  *Error
-}`)
+}`,
+	)
 
 	// Check that the helper methods are generated correctly:
 	assert.Contains(t, code, "func (r GetTestByNameResponse) Status() string {")
@@ -174,8 +182,16 @@ type GetTestByNameResponse struct {
 	// Check the client method signatures:
 	assert.Contains(t, code, "type GetTestByNameParams struct {")
 	assert.Contains(t, code, "Top *int `form:\"$top,omitempty\" json:\"$top,omitempty\"`")
-	assert.Contains(t, code, "func (c *Client) GetTestByName(ctx context.Context, name string, params *GetTestByNameParams, reqEditors ...RequestEditorFn) (*http.Response, error) {")
-	assert.Contains(t, code, "func (c *ClientWithResponses) GetTestByNameWithResponse(ctx context.Context, name string, params *GetTestByNameParams, reqEditors ...RequestEditorFn) (*GetTestByNameResponse, error) {")
+	assert.Contains(
+		t,
+		code,
+		"func (c *Client) GetTestByName(ctx context.Context, name string, params *GetTestByNameParams, reqEditors ...RequestEditorFn) (*http.Response, error) {",
+	)
+	assert.Contains(
+		t,
+		code,
+		"func (c *ClientWithResponses) GetTestByNameWithResponse(ctx context.Context, name string, params *GetTestByNameParams, reqEditors ...RequestEditorFn) (*GetTestByNameResponse, error) {",
+	)
 	assert.Contains(t, code, "DeadSince *time.Time    `json:\"dead_since,omitempty\" tag1:\"value1\" tag2:\"value2\"`")
 
 	// Make sure the generated code is valid:

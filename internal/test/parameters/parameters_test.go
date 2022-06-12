@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/deepmap/oapi-codegen/pkg/testutil"
+	"github.com/debugger84/oapi-codegen/pkg/testutil"
 )
 
 type testServer struct {
@@ -458,29 +458,37 @@ func TestParameterBinding(t *testing.T) {
 	ts.reset()
 
 	// unexploded header object
-	result = testutil.NewRequest().WithHeader("X-Object",
-		"role,admin,firstName,Alex").Get("/header").Go(t, e)
+	result = testutil.NewRequest().WithHeader(
+		"X-Object",
+		"role,admin,firstName,Alex",
+	).Get("/header").Go(t, e)
 	assert.Equal(t, http.StatusOK, result.Code())
 	assert.EqualValues(t, &expectedObject, ts.object)
 	ts.reset()
 
 	// exploded header object
-	result = testutil.NewRequest().WithHeader("X-Object-Exploded",
-		"role=admin,firstName=Alex").Get("/header").Go(t, e)
+	result = testutil.NewRequest().WithHeader(
+		"X-Object-Exploded",
+		"role=admin,firstName=Alex",
+	).Get("/header").Go(t, e)
 	assert.Equal(t, http.StatusOK, result.Code())
 	assert.EqualValues(t, &expectedObject, ts.object)
 	ts.reset()
 
 	// complex object
-	result = testutil.NewRequest().WithHeader("X-Complex-Object",
-		string(marshaledComplexObject)).Get("/header").Go(t, e)
+	result = testutil.NewRequest().WithHeader(
+		"X-Complex-Object",
+		string(marshaledComplexObject),
+	).Get("/header").Go(t, e)
 	assert.Equal(t, http.StatusOK, result.Code())
 	assert.EqualValues(t, &expectedComplexObject, ts.complexObject)
 	ts.reset()
 
 	// starting with number
-	result = testutil.NewRequest().WithHeader("1-Starting-With-Number",
-		"foo").Get("/header").Go(t, e)
+	result = testutil.NewRequest().WithHeader(
+		"1-Starting-With-Number",
+		"foo",
+	).Get("/header").Go(t, e)
 	assert.Equal(t, http.StatusOK, result.Code())
 	assert.EqualValues(t, &expectedN1Param, ts.n1param)
 	ts.reset()
@@ -502,7 +510,8 @@ func TestParameterBinding(t *testing.T) {
 	ts.reset()
 
 	result = testutil.NewRequest().WithCookieNameValue(
-		"o", "role,admin,firstName,Alex").Get("/cookie").Go(t, e)
+		"o", "role,admin,firstName,Alex",
+	).Get("/cookie").Go(t, e)
 	assert.Equal(t, http.StatusOK, result.Code())
 	assert.EqualValues(t, &expectedObject, ts.object)
 	ts.reset()
